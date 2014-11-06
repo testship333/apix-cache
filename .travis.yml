@@ -6,16 +6,26 @@ php:
   - 5.5
 
 env:
- global:
   - DB=apc
   - DB=memcache
-  - secure: mXG4zh/TMeN8tvI1fy4sYny9nf4UtuIc5WDRocq6vm/kxt8TFmH0I0Vf+LbXLLndvsNz3b0PKp1/ReoifX8T1XFXVvqHLOLRCKhjd2pVIBrjSA2FSTJa5pgsBTgbZka9C/Y9nqJK1t6f06+1wf40IJ/gCoeLhwvPVnAiQZx9y28Cn7G09/GhikU3Q4WL+htlW2AUxDbU9bWnOOI4sjmm0T+8bmlLiLEAdNHCCEuWCxBZfevXLOp1MxAJu6454QfLnm7QAwonaUj3LVRKbejeuY/L7P76PdYSLT5u4jlMToTB/uwduwdSPpT/03Pe8CLJ9OA/PfgwHZcTxz8ELp4h4Q==
+  - DB=redis
+  - DB=mongodb
+  - DB=sqlite
+  - DB=mysql
+  - DB=pgsql
+#  - secure: mXG4zh/TMeN8tvI1fy4sYny9nf4UtuIc5WDRocq6vm/kxt8TFmH0I0Vf+LbXLLndvsNz3b0PKp1/ReoifX8T1XFXVvqHLOLRCKhjd2pVIBrjSA2FSTJa5pgsBTgbZka9C/Y9nqJK1t6f06+1wf40IJ/gCoeLhwvPVnAiQZx9y28Cn7G09/GhikU3Q4WL+htlW2AUxDbU9bWnOOI4sjmm0T+8bmlLiLEAdNHCCEuWCxBZfevXLOp1MxAJu6454QfLnm7QAwonaUj3LVRKbejeuY/L7P76PdYSLT5u4jlMToTB/uwduwdSPpT/03Pe8CLJ9OA/PfgwHZcTxz8ELp4h4Q==
 
 before_script:
  
   - sh -c "if [ '$DB' = 'apc' ]; then echo 'extension=apc.so' >> `php --ini | grep 'Loaded Configuration' | sed -e 's|.*:\s*||'`; fi"
   - sh -c "if [ '$DB' = 'apc' ]; then echo 'apc.enable_cli=1' >> `php --ini | grep 'Loaded Configuration' | sed -e 's|.*:\s*||'`; fi"
   - sh -c "if [ '$DB' = 'memcache' ]; then sudo pecl install memcached-2.0.1; /usr/bin/memcached -d; fi"
+  - sh -c "if [ '$DB' = 'redis' ]; then git clone --branch=master --depth=1 git://github.com/nicolasff/phpredis.git phpredis; cd phpredis && phpize && ./configure && make && sudo make install && cd ..; rm -fr phpredis; fi"
+  - sh -c "if [ '$DB' = 'redis' ]; then echo 'extension=redis.so' >> `php --ini | grep 'Loaded Configuration' | sed -e 's|.*:\s*||'`; fi"
+  - sh -c "if [ '$DB' = 'mongodb' ]; then sudo pecl install mongo; sudo /etc/init.d/mongodb start; fi"
+  - sh -c "if [ '$DB' = 'mysql' ]; then mysql -e 'CREATE DATABASE IF NOT EXISTS apix_tests;'; fi"
+  - sh -c "if [ '$DB' = 'pgsql' ]; then psql -c 'DROP DATABASE IF EXISTS apix_tests;' -U postgres; fi"
+  - sh -c "if [ '$DB' = 'pgsql' ]; then psql -c 'CREATE DATABASE apix_tests;' -U postgres; fi"
   - phpenv rehash
   - composer install --dev --prefer-source
   - echo $test
